@@ -10,7 +10,7 @@ Robust, lightweight primitives for **verifiable payload exchange** across AI age
 [![Status: Production Ready](https://img.shields.io/badge/status-production--ready-green)](#)
 [![Type Hints](https://img.shields.io/badge/types-PEP%20484-blue)](#)
 [![Website](https://img.shields.io/badge/site-odinsecure.ai-0a84ff)](https://odinsecure.ai)
-[![CI](https://github.com/maverick0351a/Open-Proof-Envelope/actions/workflows/publish.yml/badge.svg)](https://github.com/maverick0351a/Open-Proof-Envelope/actions)
+[![CI](https://github.com/maverick0351a/Open-Proof-Envelope/actions/workflows/publish.yml/badge.svg?branch=main&event=push)](https://github.com/maverick0351a/Open-Proof-Envelope/actions/workflows/publish.yml)
 
 </div>
 
@@ -50,13 +50,13 @@ flowchart LR
         A[Raw JSON Payload] --> B[Canonicalize]
         B --> C[SHA-256 -> CID]
         C --> D[Build Envelope]
-        D --> E[Sign cid|trace_id|ts]
+        D --> E[Sign cid\|trace_id\|ts]
         E --> F[Signed Envelope]
     end
     subgraph Bundle
         F --> G[Collect Receipts]
         G --> H[Form Bundle]
-        H --> I[Sign bundle_cid|trace_id|exported_at]
+        H --> I[Sign bundle_cid\|trace_id\|exported_at]
         I --> J[Signed Bundle]
     end
     subgraph Consumer
