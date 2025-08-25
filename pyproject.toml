@@ -34,6 +34,8 @@ dev = ["mypy>=1.11.0", "pytest", "pytest-cov", "hypothesis", "black>=24.4.0", "r
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = ["E","F","I","B","UP","N","ANN","C90"]
 ignore = ["ANN101","ANN102","N818"]  # ignore missing self/cls & exception *Error suffix
 

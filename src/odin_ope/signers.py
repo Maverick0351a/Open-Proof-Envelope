@@ -46,7 +46,8 @@ class FileSigner(BaseSigner):
             raise ValueError("seed_b64u must be a base64url string")
         seed = b64u_decode(self.seed_b64u)
         if len(seed) != 32:
-            raise ValueError("Ed25519 seed must be 32 bytes (got %d)" % len(seed))
+            # Use f-string (ruff UP031: prefer format specifiers over percent formatting)
+            raise ValueError(f"Ed25519 seed must be 32 bytes (got {len(seed)})")
         self._priv = Ed25519PrivateKey.from_private_bytes(seed)
         self._pub = self._priv.public_key()
         if self._kid is None:
