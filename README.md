@@ -49,24 +49,24 @@ flowchart LR
     subgraph Producer
         A[Raw JSON Payload] --> B[Canonicalize]
         B --> C[SHA-256 -> CID]
-        C --> D[Build Envelope {payload, cid, meta}]
-        D --> E[Sign "cid|trace_id|ts" Ed25519]
+        C --> D[Build Envelope]
+        D --> E[Sign cid|trace_id|ts]
         E --> F[Signed Envelope]
     end
-    subgraph (Optional Bundle Export)
+    subgraph Bundle
         F --> G[Collect Receipts]
-        G --> H[Bundle + bundle_cid]
-        H --> I[Sign "bundle_cid|trace_id|exported_at"]
+        G --> H[Form Bundle]
+        H --> I[Sign bundle_cid|trace_id|exported_at]
         I --> J[Signed Bundle]
     end
     subgraph Consumer
-        F --> V1[Re-canonicalize & Re-hash]
+        F --> V1[Re-hash]
         V1 --> V2[CID Match?]
-        V2 --> V3[Lookup kid in JWKS]
-        V3 --> V4[Verify Ed25519 Signature]
-        V4 --> V5[Temporal / Schema Checks]
-        V5 -->|Success| OK[Accept]
-        V5 -->|Failure| ERR[Reason Code]
+        V2 --> V3[Lookup kid]
+        V3 --> V4[Verify Sig]
+        V4 --> V5[Temporal & Schema]
+        V5 -->|OK| OK[Accept]
+        V5 -->|Fail| ERR[Reason Code]
     end
 ```
 
