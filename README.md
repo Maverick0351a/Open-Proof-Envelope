@@ -42,33 +42,58 @@ It gives you a tamper‑evident, portable, and tool‑friendly way to prove *exa
 
 ---
 
-## Architecture Overview
+## Architecture Overview (Simplified)
 
 ```mermaid
 flowchart LR
-    subgraph Producer
-        A[Raw JSON Payload] --> B[Canonicalize]
-        B --> C[SHA-256 -> CID]
-        C --> D[Build Envelope]
-    D --> E[Sign cid · trace_id · ts]
-        E --> F[Signed Envelope]
-    end
-    subgraph Bundle
-        F --> G[Collect Receipts]
-        G --> H[Form Bundle]
-    H --> I[Sign bundle_cid · trace_id · exported_at]
-        I --> J[Signed Bundle]
-    end
-    subgraph Consumer
-        F --> V1[Re-hash]
-        V1 --> V2[CID Match?]
-        V2 --> V3[Lookup kid]
-        V3 --> V4[Verify Sig]
-        V4 --> V5[Temporal & Schema]
-        V5 -->|OK| OK[Accept]
-        V5 -->|Fail| ERR[Reason Code]
-    end
+    %% High-level lifecycle – fewer boxes, grouped phases
+    P["Producer"] --> C["Canonicalize + Hash\n→ CID"]
+    C --> E["Envelope + Metadata"]
+    E --> S["Sign (Ed25519)"]
+    S --> SE(("Signed\nEnvelope"))
+    SE --> B{"Many?"}
+    B -->|aggregate| COLLECT["Collect +\nChain Receipts"]
+    COLLECT --> SB(("Signed\nBundle"))
+    SE --> V["Verify Pipeline\n(hash · kid · sig · time)"]
+    SB --> V
+    V -->|OK| ACCEPT[Accept]
+    V -->|Fail| REASON[Reason Code]
+
+    %% Styling
+    classDef artifact fill:#0a84ff22,stroke:#0a84ff,color:#0a84ff,stroke-width:1px;
+    classDef action fill:#55555510,stroke:#555,color:#222,stroke-width:1px;
+    classDef decision fill:#ffaa0020,stroke:#ff9f00,color:#a05a00,stroke-width:1px;
+    classDef terminal fill:#16a34a22,stroke:#16a34a,color:#0f5132,stroke-width:1px;
+    classDef error fill:#dc262622,stroke:#dc2626,color:#7f1d1d,stroke-width:1px;
+
+    class C,E,S,V,COLLECT action;
+    class SE,SB artifact;
+    class B decision;
+    class ACCEPT terminal;
+    class REASON error;
 ```
+
+<details>
+<summary>Alternative: Sequence View (click to expand)</summary>
+
+```mermaid
+sequenceDiagram
+    participant Prod as Producer
+    participant Cons as Consumer
+    Prod->>Prod: Canonicalize JSON
+    Prod->>Prod: Hash → CID
+    Prod->>Prod: Build + Sign Envelope
+    alt Optional bundling
+        Prod->>Prod: Collect receipts → Bundle → Sign
+    end
+    Prod->>Cons: Send Envelope / Bundle
+    Cons->>Cons: Re-hash & compare CID
+    Cons->>Cons: Lookup kid & verify sig
+    Cons->>Cons: Temporal / schema checks
+    Cons-->>Prod: (optional) reason code on failure
+```
+
+</details>
 
 ---
 
