@@ -10,7 +10,6 @@ Robust, lightweight primitives for **verifiable payload exchange** across AI age
 [![Status: Production Ready](https://img.shields.io/badge/status-production--ready-green)](#)
 [![Type Hints](https://img.shields.io/badge/types-PEP%20484-blue)](#)
 [![Website](https://img.shields.io/badge/site-odinsecure.ai-0a84ff)](https://odinsecure.ai)
-[![CI](https://github.com/maverick0351a/Open-Proof-Envelope/actions/workflows/publish.yml/badge.svg?branch=main&event=push)](https://github.com/maverick0351a/Open-Proof-Envelope/actions/workflows/publish.yml)
 
 </div>
 
