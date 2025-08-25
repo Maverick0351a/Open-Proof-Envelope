@@ -1,0 +1,26 @@
+{
+  "bundle": {
+    "exported_at": "2025-01-01T00:00:05+00:00",
+    "receipts": [
+      {"hop": 0, "prev_receipt_hash": null, "receipt_hash": "h0"},
+      {"hop": 1, "prev_receipt_hash": "h0", "receipt_hash": "h1"}
+    ],
+    "trace_id": "trace-test-1"
+  },
+  "bundle_cid": "sha256:3b08bfd21932c602e2e2d1362106e95305d33d545a322c55a9ed053b5de46c2c",
+  "bundle_message": "sha256:3b08bfd21932c602e2e2d1362106e95305d33d545a322c55a9ed053b5de46c2c|trace-test-1|2025-01-01T00:00:05+00:00",
+  "bundle_signature": "is9ew2U4C2r6lN-kd39VwBuj-EQriY2hmjQybx6IpsovKl_z6zyZoX4FPaEK1XzqH2oZP4DU6cnUn4Oyn8noBA",
+  "envelope": {
+    "cid": "sha256:56530bcc3b30c0ecab93638d3ba23f069e632ca4530bdd453fb8c31951562279",
+    "payload_type": "demo.v1",
+    "target_type": "example.v1",
+    "trace_id": "trace-test-1",
+    "ts": "2025-01-01T00:00:00+00:00"
+  },
+  "envelope_message": "sha256:56530bcc3b30c0ecab93638d3ba23f069e632ca4530bdd453fb8c31951562279|trace-test-1|2025-01-01T00:00:00+00:00",
+  "envelope_signature": "ZkYWcstwR_Rejjl5TT_SNcMXHKKV-Irb0WtXSiPQKyf9fx_S82pCRjZDdiL3nYHaT1QGjEabPUXZWE2o7lZIBA",
+  "jwks": {"keys": [{"crv": "Ed25519", "kid": "ed25519-139e3940", "kty": "OKP", "x": "O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik"}]},
+  "kid": "ed25519-139e3940",
+  "payload": {"amount": 42, "user": "alice"},
+  "seed_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}

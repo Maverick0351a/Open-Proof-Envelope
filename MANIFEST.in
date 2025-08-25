@@ -1,0 +1,4 @@
+include README.md
+include LICENSE
+recursive-include src/odin_ope *.py
+include src/odin_ope/py.typed

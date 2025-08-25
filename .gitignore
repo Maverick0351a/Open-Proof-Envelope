@@ -1,0 +1,65 @@
+############################
+# Python / Build Artifacts #
+############################
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+sdist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Test / coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+coverage.xml
+.coverage*
+htmlcov/
+
+# IDE / Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.iml
+
+# OS / Misc
+*.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+*.tmp
+*.swp
+
+# SBOM / generated
+sbom_local.json
+
+# Wheel metadata caches
+pip-wheel-metadata/
+
+# Security / cache
+.cache/
+
+# Local scripts outputs
+scripts/__pycache__/
+
+# Ignore user-specific config overrides
+*.local.yaml
+*.local.json
+
+############################
+# End .gitignore
+############################
