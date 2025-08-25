@@ -42,56 +42,117 @@ It gives you a tamper‑evident, portable, and tool‑friendly way to prove *exa
 
 ---
 
-## Architecture Overview (Simplified)
+## Architecture Overview
 
+Below are multiple focused views (pick the one you need). Each avoids visual noise while conveying core intent.
+
+### 1. Layered Flow (System Perspective)
 ```mermaid
-flowchart LR
-    %% High-level lifecycle – fewer boxes, grouped phases
-    P["Producer"] --> C["Canonicalize + Hash\n→ CID"]
-    C --> E["Envelope + Metadata"]
-    E --> S["Sign (Ed25519)"]
-    S --> SE(("Signed\nEnvelope"))
-    SE --> B{"Many?"}
-    B -->|aggregate| COLLECT["Collect +\nChain Receipts"]
-    COLLECT --> SB(("Signed\nBundle"))
-    SE --> V["Verify Pipeline\n(hash · kid · sig · time)"]
-    SB --> V
-    V -->|OK| ACCEPT[Accept]
-    V -->|Fail| REASON[Reason Code]
+flowchart TB
+    subgraph Ingestion[Producer]
+        A[Raw JSON] --> B[Canonicalize]
+        B --> C[Hash\nsha256 → CID]
+        C --> D[Assemble Envelope]
+        D --> E[Sign (Ed25519)]
+        E --> SE((Signed Envelope))
+    end
+    SE --> BNDQ{Multiple?}
+    BNDQ -->|yes| R[Collect Receipts]
+    R --> SB[Sign Bundle]
+    SB --> SBB((Signed Bundle))
+    SE --> V
+    SBB --> V
+    subgraph Validation[Consumer]
+        V[Verify: hash → kid → sig → temporal → schema]
+        V -->|ok| OK[Accept]
+        V -->|fail| RC[Reason Code]
+    end
+    classDef node fill:#ffffff,stroke:#555,stroke-width:1px,color:#222;
+    classDef artifact fill:#eef5ff,stroke:#0a84ff,color:#0a84ff;
+    classDef decision fill:#fff5e6,stroke:#ff9f00,color:#8a5500;
+    classDef result fill:#e9f9f0,stroke:#16a34a,color:#14532d;
+    classDef error fill:#fdecec,stroke:#dc2626,color:#7f1d1d;
+    class SE,SBB artifact;
+    class BNDQ decision;
+    class OK result;
+    class RC error;
+```
 
-    %% Styling
-    classDef artifact fill:#0a84ff22,stroke:#0a84ff,color:#0a84ff,stroke-width:1px;
-    classDef action fill:#55555510,stroke:#555,color:#222,stroke-width:1px;
-    classDef decision fill:#ffaa0020,stroke:#ff9f00,color:#a05a00,stroke-width:1px;
-    classDef terminal fill:#16a34a22,stroke:#16a34a,color:#0f5132,stroke-width:1px;
-    classDef error fill:#dc262622,stroke:#dc2626,color:#7f1d1d,stroke-width:1px;
+### 2. Lifecycle State Machine
+```mermaid
+stateDiagram-v2
+    [*] --> Raw
+    Raw --> Canonical: canonicalize()
+    Canonical --> Hashed: sha256()
+    Hashed --> Composed: build_envelope()
+    Composed --> SignedEnvelope: sign_envelope()
+    SignedEnvelope --> Verified: verify_envelope()
+    SignedEnvelope --> Rejected: verify_envelope() fail
+    Verified --> Bundled: add to bundle (optional)
+    Bundled --> SignedBundle: sign_bundle()
+    SignedBundle --> VerifiedBundle: verify_bundle()
+    SignedBundle --> Rejected: verify_bundle() fail
+    Rejected --> [*]
+    VerifiedBundle --> [*]
+```
 
-    class C,E,S,V,COLLECT action;
-    class SE,SB artifact;
-    class B decision;
-    class ACCEPT terminal;
-    class REASON error;
+### 3. Data Model (Conceptual)
+```mermaid
+classDiagram
+    class Envelope {
+        +string cid
+        +dict payload
+        +string payload_type
+        +string target_type
+        +string trace_id
+        +int ts
+        +int not_before?
+        +int expires_at?
+        +string sender_sig?
+        +string kid?
+    }
+    class Bundle {
+        +string bundle_cid
+        +int exported_at
+        +Envelope[] receipts
+        +string bundle_sig?
+        +string kid?
+    }
+    class Signer {
+        +string kid
+        +sign(data)->signature
+        +public_jwk()->dict
+    }
+    class JWKS {
+        +keys: JWK[]
+    }
+    Envelope --> Signer : signed by
+    Signer --> JWKS : published to
+    Bundle o-- Envelope : aggregates
+```
+
+### 4. Minimal Exchange Sequence
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant C as Consumer
+    P->>P: canonicalize + hash → CID
+    P->>P: build + sign envelope
+    P-->>C: envelope (JSON)
+    C->>C: re-hash compare CID
+    C->>C: lookup kid → verify sig
+    C->>C: temporal / schema checks
+    alt valid
+        C-->>P: accept (optional ack)
+    else invalid
+        C-->>P: reason code
+    end
 ```
 
 <details>
-<summary>Alternative: Sequence View (click to expand)</summary>
+<summary>Why multiple views?</summary>
 
-```mermaid
-sequenceDiagram
-    participant Prod as Producer
-    participant Cons as Consumer
-    Prod->>Prod: Canonicalize JSON
-    Prod->>Prod: Hash → CID
-    Prod->>Prod: Build + Sign Envelope
-    alt Optional bundling
-        Prod->>Prod: Collect receipts → Bundle → Sign
-    end
-    Prod->>Cons: Send Envelope / Bundle
-    Cons->>Cons: Re-hash & compare CID
-    Cons->>Cons: Lookup kid & verify sig
-    Cons->>Cons: Temporal / schema checks
-    Cons-->>Prod: (optional) reason code on failure
-```
+Different stakeholders scan for different dimensions: the layered flow helps onboarding; the state machine clarifies transitions & failure exits; the data model anchors naming; the sequence highlights network-facing steps.
 
 </details>
 
