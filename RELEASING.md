@@ -39,4 +39,3 @@ black --check src/odin_ope
 If a critical issue is found:
 1. Yank on PyPI (if appropriate) or publish a hotfix version.
 2. Document in CHANGELOG with a warning.
-

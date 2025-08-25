@@ -44,4 +44,3 @@ If a private key is suspected compromised:
 
 ## Disclosure Timeline
 We prefer a coordinated disclosure: embargo until a fixed version is available on PyPI + advisory published.
-

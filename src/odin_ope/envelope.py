@@ -1,10 +1,18 @@
 from __future__ import annotations
-from typing import Any, Dict, Optional
-from .cid import compute_cid
-from .utils import now_utc_iso, new_trace_id
 
-def build_envelope(payload: Dict[str, Any], payload_type: str, target_type: str,
-                   trace_id: Optional[str] = None, ts: Optional[str] = None) -> Dict[str, Any]:
+from typing import Any, Protocol
+
+from .cid import compute_cid
+from .utils import new_trace_id, now_utc_iso
+
+
+def build_envelope(
+    payload: dict[str, Any],
+    payload_type: str,
+    target_type: str,
+    trace_id: str | None = None,
+    ts: str | None = None,
+) -> dict[str, Any]:
     """
     Create an unsigned envelope with computed CID.
 
@@ -34,10 +42,18 @@ def build_envelope(payload: Dict[str, Any], payload_type: str, target_type: str,
     env["ts"] = ts or now_utc_iso()
     return env
 
-def _message_for_envelope(envelope: Dict[str, Any]) -> bytes:
-    return f"{envelope['cid']}|{envelope['trace_id']}|{envelope['ts']}".encode("utf-8")
 
-def sign_envelope(envelope: Dict[str, Any], signer) -> Dict[str, Any]:
+def _message_for_envelope(envelope: dict[str, Any]) -> bytes:
+    return f"{envelope['cid']}|{envelope['trace_id']}|{envelope['ts']}".encode()
+
+
+class _SignerProto(Protocol):  # minimal protocol for envelope signer
+    kid: str
+
+    def sign(self, msg: bytes) -> str: ...
+
+
+def sign_envelope(envelope: dict[str, Any], signer: _SignerProto) -> dict[str, Any]:
     """
     Attach sender signature and kid to an envelope. Returns a new dict.
 

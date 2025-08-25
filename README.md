@@ -207,4 +207,3 @@ Issues & PRs welcome. See `CONTRIBUTING.md` and follow the style / type hints / 
 
 ## License
 Apache-2.0
-

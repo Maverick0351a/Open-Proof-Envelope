@@ -1,9 +1,13 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from typing import Any
+
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 from .utils import b64u_decode, b64u_encode, sha256_hex
+
 
 class BaseSigner:
     @property
@@ -13,8 +17,9 @@ class BaseSigner:
     def sign(self, message: bytes) -> str:  # pragma: no cover - interface
         raise NotImplementedError
 
-    def public_jwk(self) -> Dict[str, Any]:  # pragma: no cover - interface
+    def public_jwk(self) -> dict[str, Any]:  # pragma: no cover - interface
         raise NotImplementedError
+
 
 @dataclass
 class FileSigner(BaseSigner):
@@ -29,10 +34,11 @@ class FileSigner(BaseSigner):
     KID format: 'ed25519-<sha256(pub)[:8]>'
     Signature format: base64url-encoded Ed25519 signature (no padding)
     """
-    seed_b64u: str
-    _kid: Optional[str] = None
 
-    def __post_init__(self):
+    seed_b64u: str
+    _kid: str | None = None
+
+    def __post_init__(self) -> None:
         if not isinstance(self.seed_b64u, str):
             raise ValueError("seed_b64u must be a base64url string")
         seed = b64u_decode(self.seed_b64u)
@@ -42,8 +48,7 @@ class FileSigner(BaseSigner):
         self._pub = self._priv.public_key()
         if self._kid is None:
             pub_raw = self._pub.public_bytes(
-                encoding=serialization.Encoding.Raw,
-                format=serialization.PublicFormat.Raw
+                encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
             )
             self._kid = f"ed25519-{sha256_hex(pub_raw)[:8]}"
 
@@ -59,9 +64,8 @@ class FileSigner(BaseSigner):
         sig = self._priv.sign(message)
         return b64u_encode(sig)
 
-    def public_jwk(self) -> Dict[str, Any]:
+    def public_jwk(self) -> dict[str, Any]:
         x = self._pub.public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )
         return {"kty": "OKP", "crv": "Ed25519", "x": b64u_encode(x), "kid": self.kid}

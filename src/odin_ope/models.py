@@ -1,24 +1,26 @@
 """Typed models for higher-level usage (optional, zero-runtime overhead)."""
+
 from __future__ import annotations
-from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, List, Optional
+
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
 
 @dataclass(slots=True)
 class EnvelopeModel:
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     payload_type: str
     target_type: str
     cid: str
     trace_id: str
     ts: str
-    sender_sig: Optional[str] = None
-    kid: Optional[str] = None
-    not_before: Optional[str] = None
-    expires_at: Optional[str] = None
+    sender_sig: str | None = None
+    kid: str | None = None
+    not_before: str | None = None
+    expires_at: str | None = None
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "EnvelopeModel":
+    def from_dict(cls, d: dict[str, Any]) -> EnvelopeModel:
         return cls(
             payload=d["payload"],
             payload_type=d["payload_type"],
@@ -32,7 +34,7 @@ class EnvelopeModel:
             expires_at=d.get("expires_at"),
         )
 
-    def to_dict(self) -> Dict[str, Any]:  # keep ordering minimal
+    def to_dict(self) -> dict[str, Any]:  # keep ordering minimal
         d = asdict(self)
         return {k: v for k, v in d.items() if v is not None}
 
@@ -41,13 +43,13 @@ class EnvelopeModel:
 class ReceiptModel:
     hop: int
     receipt_hash: str
-    prev_receipt_hash: Optional[str]
+    prev_receipt_hash: str | None
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "ReceiptModel":
+    def from_dict(cls, d: dict[str, Any]) -> ReceiptModel:
         return cls(d["hop"], d["receipt_hash"], d.get("prev_receipt_hash"))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "hop": self.hop,
             "receipt_hash": self.receipt_hash,
@@ -58,14 +60,14 @@ class ReceiptModel:
 @dataclass(slots=True)
 class BundleModel:
     trace_id: str
-    receipts: List[ReceiptModel] = field(default_factory=list)
+    receipts: list[ReceiptModel] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "BundleModel":
+    def from_dict(cls, d: dict[str, Any]) -> BundleModel:
         return cls(
             trace_id=d["trace_id"],
             receipts=[ReceiptModel.from_dict(r) for r in d.get("receipts", [])],
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"trace_id": self.trace_id, "receipts": [r.to_dict() for r in self.receipts]}

@@ -9,10 +9,11 @@ This script demonstrates:
 
 All steps are documented inline.
 """
-from odin_ope.signers import FileSigner
-from odin_ope.envelope import build_envelope, sign_envelope
-from odin_ope.verify import verify_envelope, build_jwks_for_signers
+
 from odin_ope.bundle import build_bundle, sign_bundle, verify_bundle
+from odin_ope.envelope import build_envelope, sign_envelope
+from odin_ope.signers import FileSigner
+from odin_ope.verify import build_jwks_for_signers, verify_envelope
 
 # 1. Create a signer (Ed25519, deterministic seed for demo)
 seed_b64u = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"  # 32 zero bytes, base64url

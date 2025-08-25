@@ -3,11 +3,21 @@
 No external dependencies; uses stdlib tomllib (3.11+).
 Outputs to stdout or writes to file if --out provided.
 """
+
 from __future__ import annotations
-import argparse, json, uuid, datetime, sys, pathlib, re
+
+import argparse
+import datetime
+import json
+import pathlib
+import re
+import sys
+import uuid
+from typing import Any
+
 try:
     import tomllib  # Python 3.11+
-except Exception as e:  # pragma: no cover
+except Exception:  # pragma: no cover
     print("tomllib required (Python 3.11+)", file=sys.stderr)
     raise
 
@@ -15,7 +25,8 @@ LICENSE_ID_MAP = {"Apache-2.0": {"id": "Apache-2.0"}}
 
 SEMVER_PATTERN = re.compile(r"^(?P<name>[A-Za-z0-9_.-]+)(?P<spec>.*)$")
 
-def parse_deps(dep_list):
+
+def parse_deps(dep_list: list[str]) -> list[dict[str, Any]]:
     comps = []
     for dep in dep_list:
         # Keep full spec as version field if exact pin, else put in purl qualifiers
@@ -38,12 +49,15 @@ def parse_deps(dep_list):
         comps.append(component)
     return comps
 
-def main():
+
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", help="Output file (defaults to stdout)")
     args = ap.parse_args()
 
-    script_dir = pathlib.Path(__file__).resolve().parent.parent  # project root (one level up from scripts)
+    script_dir = (
+        pathlib.Path(__file__).resolve().parent.parent
+    )  # project root (one level up from scripts)
     pyproject_path = script_dir / "pyproject.toml"
     if not pyproject_path.exists():
         # fallback: walk up
@@ -77,7 +91,15 @@ def main():
                 "type": "application",
                 "name": name,
                 "version": version,
-                **({"licenses": [{"license": LICENSE_ID_MAP.get(license_text, {"name": license_text})}]} if license_text else {}),
+                **(
+                    {
+                        "licenses": [
+                            {"license": LICENSE_ID_MAP.get(license_text, {"name": license_text})}
+                        ]
+                    }
+                    if license_text
+                    else {}
+                ),
             },
         },
         "components": components,
@@ -88,6 +110,7 @@ def main():
         pathlib.Path(args.out).write_text(data, encoding="utf-8")
     else:
         print(data)
+
 
 if __name__ == "__main__":  # pragma: no cover
     main()

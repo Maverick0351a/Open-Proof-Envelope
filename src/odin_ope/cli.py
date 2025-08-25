@@ -6,33 +6,33 @@ Usage examples:
 
   odin-ope verify-envelope --envelope signed.json --jwks jwks.json
 """
+
 from __future__ import annotations
-import argparse, json, sys
+
+import argparse
+import json
+import sys
 from pathlib import Path
-from .signers import FileSigner
+
+from .bundle import verify_bundle, verify_bundle_or_raise
 from .envelope import build_envelope, sign_envelope
-from .verify import build_jwks_for_signers, verify_envelope, verify_envelope_or_raise
-from .bundle import verify_bundle_or_raise, verify_bundle
 from .exceptions import (
-    CidMismatch,
-    MissingSigOrKid,
-    KidNotFound,
-    SignatureInvalid,
-    TimestampSkew,
-    SchemaError,
-    NotYetValid,
-    Expired,
     reason_code_for_exception,
 )
+from .signers import FileSigner
+from .verify import build_jwks_for_signers, verify_envelope, verify_envelope_or_raise
+
 
 def _load_json(path: str) -> dict:
     return json.loads(Path(path).read_text())
 
+
 def cmd_sign_envelope(args: argparse.Namespace) -> int:
     signer = FileSigner(args.seed)
     payload = _load_json(args.payload)
-    env = build_envelope(payload, args.payload_type, args.target_type,
-                         trace_id=args.trace_id, ts=args.ts)
+    env = build_envelope(
+        payload, args.payload_type, args.target_type, trace_id=args.trace_id, ts=args.ts
+    )
     if args.not_before:
         env["not_before"] = args.not_before
     if args.expires_at:
@@ -46,8 +46,10 @@ def cmd_sign_envelope(args: argparse.Namespace) -> int:
     sys.stdout.write("\n")
     return 0
 
+
 def _exc_code(e: Exception) -> str:
     return reason_code_for_exception(e)
+
 
 def cmd_verify_envelope(args: argparse.Namespace) -> int:
     data = _load_json(args.envelope)
@@ -74,6 +76,7 @@ def cmd_verify_envelope(args: argparse.Namespace) -> int:
                 print(f"reason_code={reason}", file=sys.stderr)
         return 1
 
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser("odin-ope")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -93,7 +96,9 @@ def build_parser() -> argparse.ArgumentParser:
     s2 = sub.add_parser("verify-envelope", help="Verify an envelope JSON against JWKS")
     s2.add_argument("--envelope", required=True, help="Path to envelope JSON file")
     s2.add_argument("--jwks", required=True, help="Path to JWKS JSON file")
-    s2.add_argument("--max-skew", type=int, default=300, help="Max allowed timestamp skew seconds (default 300)")
+    s2.add_argument(
+        "--max-skew", type=int, default=300, help="Max allowed timestamp skew seconds (default 300)"
+    )
     s2.add_argument("--no-skew", action="store_true", help="Disable skew checking")
     s2.add_argument("--strict", action="store_true", help="Enable strict schema validation")
     s2.add_argument("--json", action="store_true", help="Emit JSON result")
@@ -104,40 +109,57 @@ def build_parser() -> argparse.ArgumentParser:
     s3.add_argument("--jwks", required=True, help="Path to JWKS JSON file")
     s3.add_argument("--kid", required=True, help="Expected signer kid")
     s3.add_argument("--signature", required=True, help="Base64url signature for bundle")
-    s3.add_argument("--max-skew", type=int, default=300, help="Max allowed exported_at skew seconds (default 300)")
+    s3.add_argument(
+        "--max-skew",
+        type=int,
+        default=300,
+        help="Max allowed exported_at skew seconds (default 300)",
+    )
     s3.add_argument("--no-skew", action="store_true", help="Disable skew checking")
-    s3.add_argument("--strict", action="store_true", help="Enable strict schema (currently unused for bundle)")
+    s3.add_argument(
+        "--strict", action="store_true", help="Enable strict schema (currently unused for bundle)"
+    )
     s3.add_argument("--json", action="store_true", help="Emit JSON result")
+
     def _cmd(args: argparse.Namespace) -> int:
-        import json, sys
+        import json
+        import sys
+
         bundle = json.loads(Path(args.bundle).read_text())
         jwks = json.loads(Path(args.jwks).read_text())
         max_skew = None if args.no_skew else args.max_skew
         try:
-            verify_bundle_or_raise(bundle, args.signature, jwks, args.kid, max_skew_seconds=max_skew)
+            verify_bundle_or_raise(
+                bundle, args.signature, jwks, args.kid, max_skew_seconds=max_skew
+            )
             if args.json:
-                json.dump({"status": "ok"}, sys.stdout); sys.stdout.write("\n")
+                json.dump({"status": "ok"}, sys.stdout)
+                sys.stdout.write("\n")
             else:
                 print("OK")
             return 0
         except Exception as e:
             code = _exc_code(e)
             if args.json:
-                json.dump({"status": "error", "code": code, "message": str(e)}, sys.stdout); sys.stdout.write("\n")
+                json.dump({"status": "error", "code": code, "message": str(e)}, sys.stdout)
+                sys.stdout.write("\n")
             else:
                 print(f"FAIL: {e}", file=sys.stderr)
                 ok, reason = verify_bundle(bundle, args.signature, jwks, args.kid)
                 if not ok:
                     print(f"reason_code={reason}", file=sys.stderr)
             return 1
+
     s3.set_defaults(func=_cmd)
 
     return p
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)
+
 
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())

@@ -1,0 +1,7 @@
+# Enforce LF endings
+* text=auto eol=lf
+*.ps1 text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+.pre-commit-config.yaml text eol=lf
+.yamllint.yml text eol=lf
