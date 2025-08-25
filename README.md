@@ -49,29 +49,29 @@ Below are multiple focused views (pick the one you need). Each avoids visual noi
 ### 1. Layered Flow (System Perspective)
 ```mermaid
 flowchart TB
-    subgraph Ingestion[Producer]
+    %% Simplified for GitHub Mermaid (avoid multiline + unicode arrows)
+    subgraph Ingestion [Producer]
         A[Raw JSON] --> B[Canonicalize]
-        B --> C[Hash\nsha256 → CID]
+        B --> C[Hash sha256 -> CID]
         C --> D[Assemble Envelope]
-        D --> E[Sign (Ed25519)]
+        D --> E[Sign Ed25519]
         E --> SE((Signed Envelope))
     end
     SE --> BNDQ{Multiple?}
     BNDQ -->|yes| R[Collect Receipts]
     R --> SB[Sign Bundle]
     SB --> SBB((Signed Bundle))
-    SE --> V
+    SE --> V[Verify]
     SBB --> V
-    subgraph Validation[Consumer]
-        V[Verify: hash → kid → sig → temporal → schema]
+    subgraph Validation [Consumer]
         V -->|ok| OK[Accept]
         V -->|fail| RC[Reason Code]
     end
-    classDef node fill:#ffffff,stroke:#555,stroke-width:1px,color:#222;
-    classDef artifact fill:#eef5ff,stroke:#0a84ff,color:#0a84ff;
-    classDef decision fill:#fff5e6,stroke:#ff9f00,color:#8a5500;
-    classDef result fill:#e9f9f0,stroke:#16a34a,color:#14532d;
-    classDef error fill:#fdecec,stroke:#dc2626,color:#7f1d1d;
+    %% Minimal styling only (GitHub safe)
+    classDef artifact fill:#eef5ff,stroke:#0a84ff,color:#0a84ff,stroke-width:1px;
+    classDef decision fill:#fff5e6,stroke:#ff9f00,color:#8a5500,stroke-width:1px;
+    classDef result fill:#e9f9f0,stroke:#16a34a,color:#14532d,stroke-width:1px;
+    classDef error fill:#fdecec,stroke:#dc2626,color:#7f1d1d,stroke-width:1px;
     class SE,SBB artifact;
     class BNDQ decision;
     class OK result;
