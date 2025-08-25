@@ -23,9 +23,12 @@ from .utils import b64u_decode
 
 
 def _find_jwk(jwks: dict[str, Any], kid: str) -> dict[str, Any] | None:
-    keys = jwks.get("keys") or []
-    for k in keys:
-        if k.get("kid") == kid:
+    keys_obj = jwks.get("keys")
+    if not isinstance(keys_obj, list):  # defensive
+        return None
+    for k in keys_obj:
+        if isinstance(k, dict) and k.get("kid") == kid:
+            # Dict is acceptable return type per signature
             return k
     return None
 

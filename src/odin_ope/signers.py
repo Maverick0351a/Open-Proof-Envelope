@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
 from .utils import b64u_decode, b64u_encode, sha256_hex
 
@@ -37,6 +37,9 @@ class FileSigner(BaseSigner):
 
     seed_b64u: str
     _kid: str | None = None
+    # Internal key objects (set in __post_init__)
+    _priv: Ed25519PrivateKey = field(init=False, repr=False)
+    _pub: Ed25519PublicKey = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         if not isinstance(self.seed_b64u, str):

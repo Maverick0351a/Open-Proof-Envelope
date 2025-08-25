@@ -54,6 +54,6 @@ __all__ = [
 try:  # prefer single source of truth from installed metadata
     from importlib.metadata import version as _pkg_version  # Python 3.8+
 
-    __version__ = _pkg_version("odin-ope")  # type: ignore
+    __version__ = _pkg_version("odin-ope")
 except Exception:  # pragma: no cover
     __version__ = "0.0.0"
