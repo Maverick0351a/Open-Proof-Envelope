@@ -11,13 +11,13 @@ from .utils import b64u_decode, b64u_encode, sha256_hex
 
 class BaseSigner:
     @property
-    def kid(self) -> str:  # pragma: no cover - interface
+    def kid(self: BaseSigner) -> str:  # pragma: no cover - interface
         raise NotImplementedError
 
-    def sign(self, message: bytes) -> str:  # pragma: no cover - interface
+    def sign(self: BaseSigner, message: bytes) -> str:  # pragma: no cover - interface
         raise NotImplementedError
 
-    def public_jwk(self) -> dict[str, Any]:  # pragma: no cover - interface
+    def public_jwk(self: BaseSigner) -> dict[str, Any]:  # pragma: no cover - interface
         raise NotImplementedError
 
 
@@ -41,7 +41,7 @@ class FileSigner(BaseSigner):
     _priv: Ed25519PrivateKey = field(init=False, repr=False)
     _pub: Ed25519PublicKey = field(init=False, repr=False)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self: FileSigner) -> None:
         if not isinstance(self.seed_b64u, str):
             raise ValueError("seed_b64u must be a base64url string")
         seed = b64u_decode(self.seed_b64u)
@@ -57,18 +57,18 @@ class FileSigner(BaseSigner):
             self._kid = f"ed25519-{sha256_hex(pub_raw)[:8]}"
 
     @property
-    def kid(self) -> str:
+    def kid(self: FileSigner) -> str:
         if not self._kid or not isinstance(self._kid, str):
             raise ValueError("Invalid or missing KID")
         return self._kid
 
-    def sign(self, message: bytes) -> str:
+    def sign(self: FileSigner, message: bytes) -> str:
         if not isinstance(message, bytes):
             raise ValueError("Message to sign must be bytes")
         sig = self._priv.sign(message)
         return b64u_encode(sig)
 
-    def public_jwk(self) -> dict[str, Any]:
+    def public_jwk(self: FileSigner) -> dict[str, Any]:
         x = self._pub.public_bytes(
             encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )

@@ -12,19 +12,23 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from .bundle import verify_bundle, verify_bundle_or_raise
 from .envelope import build_envelope, sign_envelope
-from .exceptions import (
-    reason_code_for_exception,
-)
+from .exceptions import reason_code_for_exception
 from .signers import FileSigner
 from .verify import build_jwks_for_signers, verify_envelope, verify_envelope_or_raise
 
 
-def _load_json(path: str) -> dict:
-    return json.loads(Path(path).read_text())
+def _load_json(path: str) -> dict[str, Any]:
+    data = json.loads(Path(path).read_text())
+    if not isinstance(data, dict):
+        raise ValueError("JSON file must contain an object at top level")
+    # best-effort narrowing; keys to str
+    return {str(k): v for k, v in data.items()}
 
 
 def cmd_sign_envelope(args: argparse.Namespace) -> int:
@@ -53,9 +57,14 @@ def _exc_code(e: Exception) -> str:
 
 def cmd_verify_envelope(args: argparse.Namespace) -> int:
     data = _load_json(args.envelope)
-    env = data.get("envelope") if "envelope" in data else data
+    env_candidate = data.get("envelope")
+    env: dict[str, Any]
+    if isinstance(env_candidate, dict):
+        env = env_candidate
+    else:
+        env = data
     jwks = _load_json(args.jwks)
-    max_skew = None if args.no_skew else args.max_skew
+    max_skew: int | None = None if args.no_skew else int(args.max_skew)
     try:
         verify_envelope_or_raise(env, jwks, max_skew_seconds=max_skew, strict=args.strict)
         if args.json:
@@ -125,8 +134,14 @@ def build_parser() -> argparse.ArgumentParser:
         import json
         import sys
 
-        bundle = json.loads(Path(args.bundle).read_text())
-        jwks = json.loads(Path(args.jwks).read_text())
+        bundle_raw = json.loads(Path(args.bundle).read_text())
+        if not isinstance(bundle_raw, dict):
+            raise ValueError("Bundle JSON must be an object")
+        bundle: dict[str, Any] = {str(k): v for k, v in bundle_raw.items()}
+        jwks_raw = json.loads(Path(args.jwks).read_text())
+        if not isinstance(jwks_raw, dict):
+            raise ValueError("JWKS JSON must be an object")
+        jwks: dict[str, Any] = {str(k): v for k, v in jwks_raw.items()}
         max_skew = None if args.no_skew else args.max_skew
         try:
             verify_bundle_or_raise(
@@ -158,7 +173,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    return args.func(args)
+    func: Callable[[argparse.Namespace], int] = args.func
+    result = func(args)
+    if not isinstance(result, int):
+        raise TypeError("Command handlers must return int")
+    return result
 
 
 if __name__ == "__main__":  # pragma: no cover

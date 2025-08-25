@@ -20,7 +20,7 @@ class EnvelopeModel:
     expires_at: str | None = None
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> EnvelopeModel:
+    def from_dict(cls: type[EnvelopeModel], d: dict[str, Any]) -> EnvelopeModel:
         return cls(
             payload=d["payload"],
             payload_type=d["payload_type"],
@@ -34,7 +34,7 @@ class EnvelopeModel:
             expires_at=d.get("expires_at"),
         )
 
-    def to_dict(self) -> dict[str, Any]:  # keep ordering minimal
+    def to_dict(self: EnvelopeModel) -> dict[str, Any]:  # keep ordering minimal
         d = asdict(self)
         return {k: v for k, v in d.items() if v is not None}
 
@@ -46,10 +46,10 @@ class ReceiptModel:
     prev_receipt_hash: str | None
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> ReceiptModel:
+    def from_dict(cls: type[ReceiptModel], d: dict[str, Any]) -> ReceiptModel:
         return cls(d["hop"], d["receipt_hash"], d.get("prev_receipt_hash"))
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self: ReceiptModel) -> dict[str, Any]:
         return {
             "hop": self.hop,
             "receipt_hash": self.receipt_hash,
@@ -63,11 +63,11 @@ class BundleModel:
     receipts: list[ReceiptModel] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> BundleModel:
+    def from_dict(cls: type[BundleModel], d: dict[str, Any]) -> BundleModel:
         return cls(
             trace_id=d["trace_id"],
             receipts=[ReceiptModel.from_dict(r) for r in d.get("receipts", [])],
         )
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self: BundleModel) -> dict[str, Any]:
         return {"trace_id": self.trace_id, "receipts": [r.to_dict() for r in self.receipts]}

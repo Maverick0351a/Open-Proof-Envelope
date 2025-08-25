@@ -48,9 +48,11 @@ def _message_for_envelope(envelope: dict[str, Any]) -> bytes:
 
 
 class _SignerProto(Protocol):  # minimal protocol for envelope signer
-    kid: str
+    @property
+    def kid(self: _SignerProto) -> str:  # read-only attribute acceptable for protocol
+        ...
 
-    def sign(self, msg: bytes) -> str: ...
+    def sign(self: _SignerProto, msg: bytes) -> str: ...
 
 
 def sign_envelope(envelope: dict[str, Any], signer: _SignerProto) -> dict[str, Any]:

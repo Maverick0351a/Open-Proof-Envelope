@@ -25,7 +25,7 @@ def compute_bundle_cid(bundle: dict[str, Any]) -> str:
 
 
 class _SignerLike(Protocol):  # minimal protocol for signer
-    def sign(self, msg: bytes) -> str: ...  # noqa: D401 - simple protocol
+    def sign(self: _SignerLike, msg: bytes) -> str: ...  # noqa: D401 - simple protocol
 
 
 def sign_bundle(bundle: dict[str, Any], signer: _SignerLike) -> str:
