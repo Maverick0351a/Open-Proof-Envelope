@@ -1,0 +1,9 @@
+extends: default
+rules:
+  line-length:
+    max: 140
+    level: warning
+  truthy:
+    level: warning
+  document-start:
+    present: false
