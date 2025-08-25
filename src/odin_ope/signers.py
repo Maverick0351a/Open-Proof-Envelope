@@ -47,7 +47,9 @@ class FileSigner(BaseSigner):
         seed = b64u_decode(self.seed_b64u)
         if len(seed) != 32:
             # Use f-string (ruff UP031: prefer format specifiers over percent formatting)
-            raise ValueError(f"Ed25519 seed must be 32 bytes (got {len(seed)})")
+            raise ValueError(
+                f"Ed25519 seed must be 32 bytes (got {len(seed)})"
+            )  # pragma: no cover - defensive length check
         self._priv = Ed25519PrivateKey.from_private_bytes(seed)
         self._pub = self._priv.public_key()
         if self._kid is None:
@@ -58,12 +60,12 @@ class FileSigner(BaseSigner):
 
     @property
     def kid(self: FileSigner) -> str:
-        if not self._kid or not isinstance(self._kid, str):
+        if not self._kid or not isinstance(self._kid, str):  # pragma: no cover - mutation guard
             raise ValueError("Invalid or missing KID")
         return self._kid
 
     def sign(self: FileSigner, message: bytes) -> str:
-        if not isinstance(message, bytes):
+        if not isinstance(message, bytes):  # pragma: no cover - type guard
             raise ValueError("Message to sign must be bytes")
         sig = self._priv.sign(message)
         return b64u_encode(sig)

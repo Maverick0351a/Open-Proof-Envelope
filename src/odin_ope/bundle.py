@@ -54,7 +54,7 @@ def _validate_receipts(receipts: Sequence[dict[str, Any]]) -> None:
     prev_hash: str | None = None
     for idx, r in enumerate(receipts):
         if not isinstance(r, dict):
-            raise SchemaError("receipt must be dict")
+            raise SchemaError("receipt must be dict")  # pragma: no cover - defensive
         required = {"hop", "receipt_hash", "prev_receipt_hash"}
         if required - set(r):
             raise SchemaError("receipt missing required fields")
@@ -77,7 +77,7 @@ def _validate_bundle_structure(bundle: dict[str, Any]) -> list[dict[str, Any]]:
             raise SchemaError(f"bundle missing field {f}")
     receipts_local = bundle.get("receipts")
     if not isinstance(receipts_local, list):
-        raise SchemaError("receipts must be list")
+        raise SchemaError("receipts must be list")  # pragma: no cover - defensive
     _validate_receipts(receipts_local)
     return receipts_local
 

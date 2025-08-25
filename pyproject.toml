@@ -37,7 +37,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E","F","I","B","UP","N","ANN","C90"]
-ignore = ["ANN101","ANN102","N818"]  # ignore missing self/cls & exception *Error suffix
+ignore = ["N818"]  # ignore missing self/cls & exception *Error suffix
 
 [tool.black]
 line-length = 100
